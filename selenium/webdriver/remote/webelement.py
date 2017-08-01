@@ -38,9 +38,6 @@ try:
 except ImportError:  # 3+
     from io import BytesIO as IOStream
 
-getAttribute_js = pkgutil.get_data(__package__, 'getAttribute.js').decode('utf8')
-isDisplayed_js = pkgutil.get_data(__package__, 'isDisplayed.js').decode('utf8')
-
 
 class WebElement(object):
     """Represents a DOM element.
@@ -135,8 +132,10 @@ class WebElement(object):
 
         attributeValue = ''
         if self._w3c:
+            get_attribute_js = pkgutil.get_data(
+                __package__, 'getAttribute.js').decode('utf8')
             attributeValue = self.parent.execute_script(
-                "return (%s).apply(null, arguments);" % getAttribute_js,
+                "return (%s).apply(null, arguments);" % get_attribute_js,
                 self, name)
         else:
             resp = self._execute(Command.GET_ELEMENT_ATTRIBUTE, {'name': name})
@@ -353,9 +352,11 @@ class WebElement(object):
     def is_displayed(self):
         """Whether the element is visible to a user."""
         # Only go into this conditional for browsers that don't use the atom themselves
+        is_displayed_js = pkgutil.get_data(
+            __package__, 'isDisplayed.js').decode('utf8')
         if self._w3c and self.parent.capabilities['browserName'] == 'safari':
             return self.parent.execute_script(
-                "return (%s).apply(null, arguments);" % isDisplayed_js,
+                "return (%s).apply(null, arguments);" % is_displayed_js,
                 self)
         else:
             return self._execute(Command.IS_ELEMENT_DISPLAYED)['value']
