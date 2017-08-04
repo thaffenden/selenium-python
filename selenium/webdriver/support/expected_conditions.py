@@ -20,6 +20,7 @@ from selenium.common.exceptions import NoSuchFrameException
 from selenium.common.exceptions import StaleElementReferenceException
 from selenium.common.exceptions import WebDriverException
 from selenium.common.exceptions import NoAlertPresentException
+from selenium.webdriver.remote.webdriver import WebElement
 
 """
  * Canned "Expected Conditions" which are generally useful within webdriver
@@ -395,7 +396,10 @@ def _find_element(driver, by):
     """Looks up an element. Logs and re-raises ``WebDriverException``
     if thrown."""
     try:
-        return driver.find_element(*by)
+        if isinstance(by, WebElement):
+            return by
+        else:
+            return driver.find_element(*by)
     except NoSuchElementException as e:
         raise e
     except WebDriverException as e:
