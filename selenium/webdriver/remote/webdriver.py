@@ -5,7 +5,7 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-#:
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing,
@@ -52,6 +52,12 @@ _W3C_CAPABILITY_NAMES = frozenset([
     'unhandledPromptBehavior',
 ])
 
+_OSS_W3C_CONVERSION = {
+    'acceptSslCerts': 'acceptInsecureCerts',
+    'version': 'browserVersion',
+    'platform': 'platformName'
+}
+
 
 def _make_w3c_caps(caps):
     """Makes a W3C alwaysMatch capabilities object.
@@ -65,9 +71,14 @@ def _make_w3c_caps(caps):
     :Args:
      - caps - A dictionary of capabilities requested by the caller.
     """
+    caps = copy.deepcopy(caps)
     profile = caps.get('firefox_profile')
     always_match = {}
+    if caps.get('proxy') and caps['proxy'].get('proxyType'):
+        caps['proxy']['proxyType'] = caps['proxy']['proxyType'].lower()
     for k, v in caps.items():
+        if v and k in _OSS_W3C_CONVERSION:
+            always_match[_OSS_W3C_CONVERSION[k]] = v.lower() if k == 'platform' else v
         if k in _W3C_CAPABILITY_NAMES or ':' in k:
             always_match[k] = v
     if profile:
@@ -853,9 +864,11 @@ class WebDriver(object):
                 by = By.CSS_SELECTOR
                 value = '[name="%s"]' % value
 
+        # Return empty list if driver returns null
+        # See https://github.com/SeleniumHQ/selenium/issues/4555
         return self.execute(Command.FIND_ELEMENTS, {
             'using': by,
-            'value': value})['value']
+            'value': value})['value'] or []
 
     @property
     def desired_capabilities(self):
