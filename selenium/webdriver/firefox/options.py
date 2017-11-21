@@ -43,7 +43,7 @@ class Options(object):
 
     @property
     def binary(self):
-        """Returns the location of the binary."""
+        """Returns the FirefoxBinary instance"""
         return self._binary
 
     @binary.setter
@@ -58,10 +58,12 @@ class Options(object):
 
     @property
     def binary_location(self):
-        return self.binary
+        """Returns the location of the binary."""
+        return self.binary._start_cmd
 
-    @binary.setter  # noqa
+    @binary_location.setter  # noqa
     def binary_location(self, value):
+        """ Sets the location of the browser binary by string """
         self.binary = value
 
     @property
@@ -109,6 +111,25 @@ class Options(object):
         if argument is None:
             raise ValueError()
         self._arguments.append(argument)
+
+    @property
+    def headless(self):
+        """
+        Returns whether or not the headless argument is set
+        """
+        return '-headless' in self._arguments
+
+    def set_headless(self, headless=True):
+        """
+        Sets the headless argument
+
+        Args:
+          headless: boolean value indicating to set the headless option
+        """
+        if headless:
+            self._arguments.append('-headless')
+        elif '-headless' in self._arguments:
+            self._arguments.remove('-headless')
 
     def to_capabilities(self):
         """Marshals the Firefox options to a `moz:firefoxOptions`
